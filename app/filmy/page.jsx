@@ -1,22 +1,73 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import useFetch from "../hooks/useFetch";
 
 export default function FilmyPage() {
 
     let [refreshKey, setRefreshKey] = useState(0);
+    let [searchQuery, setSearchQuery] = useState('');
+
+    const searchRef = useRef(null);
+
+    useEffect(() => {
+        searchRef.current?.focus();
+    }, []);
+
     let { data, loading, error } = useFetch('/api/filmy?v=' + refreshKey);
 
     if (loading) return <p>Ładowanie...</p>;
     if (error) return <p className="text-danger">Błąd: {error}</p>;
 
+
+    const filteredMovies = (data ?? []).filter(film =>
+        film.title.toLowerCase().includes(
+            searchQuery.toLowerCase()
+        )
+    )
+
     return (
         <>
             <div className="container py-4">
+
+                <div className="row mb-4 g-2">
+
+                    <div className="col-md-8">
+                        <input
+                            ref={searchRef}
+                            type="text"
+                            className="form-control form-control-lg"
+                            placeholder="Szukaj filmu..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="col-md-2 d-grid">
+                        <Link
+                            href="/filmy/dodaj"
+                            className="btn btn-success btn-lg"
+                        >
+                            Dodaj
+                        </Link>
+                    </div>
+
+                    <div className="col-md-2 d-grid">
+                        <button
+                            className="btn btn-dark btn-lg"
+                            onClick={() => setRefreshKey(prev => prev + 1)}
+                        >
+                            Odśwież
+                        </button>
+                    </div>
+
+                </div>
+
+
                 <div className="row g-3">
 
-                    {data.map(film => (
+                    {filteredMovies.map(film => (
                         <div key={film.id} className="col-md-6 col-lg-4">
 
                             <div className="card h-100 shadow-sm border-0 hover-shadow">

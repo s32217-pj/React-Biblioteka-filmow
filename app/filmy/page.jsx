@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useReducer } from "react";
 import Link from "next/link";
-import useFetch from "../hooks/useFetch";
+import { filmReducer, initialFilmState } from "../reducers/filmReducer";
 
 export default function FilmyPage() {
 
+    const [state, dispatch] = useReducer(filmReducer, initialFilmState)
+
     let [refreshKey, setRefreshKey] = useState(0);
-    let [searchQuery, setSearchQuery] = useState('');
 
     const searchRef = useRef(null);
 
@@ -15,15 +16,43 @@ export default function FilmyPage() {
         searchRef.current?.focus();
     }, []);
 
-    let { data, loading, error } = useFetch('/api/filmy?v=' + refreshKey);
+    useEffect(() => {
 
-    if (loading) return <p>Ładowanie...</p>;
-    if (error) return <p className="text-danger">Błąd: {error}</p>;
+        async function fetchData() {
+
+            dispatch({
+                type: 'FETCH_START'
+            })
+
+            let response = await fetch('/api/filmy?v=' + refreshKey);
+
+            if (!response.ok) {
+                dispatch({
+                    type: 'FETCH_ERROR',
+                    payload: 'Filmy nie mogly zostac wczytane'
+                });
+                return;
+            }
+
+            const data = await response.json();
+
+            dispatch({
+                type: 'FETCH_SUCCESS',
+                payload: data
+            })
+        }
+
+        fetchData();
+
+    }, []);
+
+    if (state.loading) return <p>Ładowanie...</p>;
+    if (state.error) return <p className="text-danger">Błąd: {state.error}</p>;
 
 
-    const filteredMovies = (data ?? []).filter(film =>
+    const filteredMovies = (state.films ?? []).filter(film =>
         film.title.toLowerCase().includes(
-            searchQuery.toLowerCase()
+            state.query.toLowerCase()
         )
     )
 
@@ -39,8 +68,8 @@ export default function FilmyPage() {
                             type="text"
                             className="form-control form-control-lg"
                             placeholder="Szukaj filmu..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            value={state.query}
+                            onChange={(e) => dispatch({ type: 'SET_QUERY', payload: e.target.value })}
                         />
                     </div>
 

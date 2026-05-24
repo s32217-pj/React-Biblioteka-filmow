@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useRef, useReducer } from "react";
 import Link from "next/link";
-import { filmReducer, initialFilmState } from "../reducers/filmReducer";
+import FavoriteButton from "./FavoriteButton";
+import { useFilmDispatch, useFilmState } from "../context/FilmContext";
 
 export default function FilmyPage() {
 
-    const [state, dispatch] = useReducer(filmReducer, initialFilmState)
+    const state = useFilmState();
+    const dispatch = useFilmDispatch();
 
     let [refreshKey, setRefreshKey] = useState(0);
 
@@ -14,36 +16,6 @@ export default function FilmyPage() {
 
     useEffect(() => {
         searchRef.current?.focus();
-    }, []);
-
-    useEffect(() => {
-
-        async function fetchData() {
-
-            dispatch({
-                type: 'FETCH_START'
-            })
-
-            let response = await fetch('/api/filmy?v=' + refreshKey);
-
-            if (!response.ok) {
-                dispatch({
-                    type: 'FETCH_ERROR',
-                    payload: 'Filmy nie mogly zostac wczytane'
-                });
-                return;
-            }
-
-            const data = await response.json();
-
-            dispatch({
-                type: 'FETCH_SUCCESS',
-                payload: data
-            })
-        }
-
-        fetchData();
-
     }, []);
 
     if (state.loading) return <p>Ładowanie...</p>;
@@ -121,6 +93,8 @@ export default function FilmyPage() {
                                             <span className="badge bg-secondary me-2">Gatunek</span>
                                             {film.genre}
                                         </p>
+
+                                        <FavoriteButton filmId={film.id} />
                                     </div>
 
                                 </div>

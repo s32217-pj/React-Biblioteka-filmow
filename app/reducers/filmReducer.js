@@ -5,6 +5,7 @@ export const initialFilmState = {
     loading : true,
     error : null,
     query : '',
+    notifications: [],
     favorites : []
 }
 

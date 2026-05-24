@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import {useTheme} from "../context/ThemeContext"
 
 const links = [
   { href: '/', label: 'Home' },
@@ -10,6 +11,7 @@ const links = [
 
 export default function Nav() {
   const pathname = usePathname()
+  const [theme, toggleTheme] = useTheme()
 
   return (
     <nav className="navbar navbar-dark bg-dark py-3 shadow-sm">
@@ -33,6 +35,13 @@ export default function Nav() {
               </Link>
             ))
           }
+
+          <button
+            className={`btn btn-sm ${theme === 'light' ? 'btn-outline-light' : 'btn-outline-warning'}`}
+            onClick={toggleTheme}>
+            {theme === 'light' ? '🌙 Ciemny' : '☀️ Jasny'}
+          </button>
+
         </div>
       </div>
     </nav>

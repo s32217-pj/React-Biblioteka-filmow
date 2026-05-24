@@ -3,6 +3,7 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useRouter } from "next/navigation";
+import { useFilmDispatch } from "../../context/FilmContext";
 
 const filmValidationSchema = Yup.object({
     title: Yup.string()
@@ -22,6 +23,7 @@ const filmValidationSchema = Yup.object({
 export default function AddFilmPage() {
 
     const router = useRouter();
+    const dispatch = useFilmDispatch();
 
     const handleSubmit = async (values, { setSubmitting, resetForm }) => {
         try {
@@ -34,12 +36,44 @@ export default function AddFilmPage() {
             });
 
             if (!res.ok) {
-                throw new Error("Błąd podczas zapisu");
+
+                dispatch({
+                    type: "ADD_NOTIFICATION",
+                    payload: {
+                        message: "Nie udało się dodać filmu",
+                        type: "error"
+                    }
+                });
+
+                resetForm();
+                router.push("/filmy");
             }
+
+            dispatch({
+                type: "ADD_FILM",
+                payload: {...values, id: crypto.randomUUID()}
+            });
+
+            dispatch({
+                type: "ADD_NOTIFICATION",
+                payload: {
+                    message: "Film został pomyślnie dodany!",
+                    type: "success"
+                }
+            });
 
             resetForm();
             router.push("/filmy");
         } catch (err) {
+
+            dispatch({
+                type: "ADD_NOTIFICATION",
+                payload: {
+                    message: "Nie udało się dodać filmu",
+                    type: "error"
+                }
+            });
+
             console.error(err);
         } finally {
             setSubmitting(false);
